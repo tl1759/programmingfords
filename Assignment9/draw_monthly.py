@@ -1,0 +1,88 @@
+import pandas as pd 
+import numpy as np 
+import matplotlib.pyplot as plt 
+import datetime
+import time
+import matplotlib.dates
+def load_data():
+	global cleandata
+	rawdata = pd.read_csv("DOHMH_New_York_City_Restaurant_Inspection_Results_raw.csv", low_memory = False)
+	cleaningdata1 = rawdata.dropna(subset = ['GRADE']) # get the NAN eliminated
+	cleaningdata2 = cleaningdata1.query('GRADE != "Not Yet Graded"') #get the "Not Yet Graded" eliminated
+	####convert  'GRADE DATE' to datetime
+	cleaningdata2 = cleaningdata2.dropna(subset = ['GRADE DATE'])### remember to drop nan!!!!
+	cleaningdata2['GRADE DATE'] = pd.to_datetime(cleaningdata2['GRADE DATE'],format = '%m/%d/%Y')
+	###convert datetime to date use date() method
+	cleaningdata2['GRADE DATE'] = [time.date() for time in cleaningdata2['GRADE DATE']]
+	###sort the dataframe use time 
+	cleandata = cleaningdata2.sort(['GRADE DATE'])
+# load_data()
+
+# def calculate_grade_eachday(grade):
+# 	datearray = (cleandata['GRADE DATE']).unique()
+# 	date_grade = {}
+# 	for date in datearray:
+# 		datemask = cleandata['GRADE DATE']== date#####use mask to get the date index 
+# 		dateDF1 = cleandata[datemask] ##get the date dataFrame
+# 		# dateDF2 = dateDF1.query('dateDF1[GRADE DATE] !="255/255/1"') #### i WANT TO USE QUERY TO DEL UNVALID DATE
+# 		grademask = dateDF1['GRADE'] == grade####get the grade mask 
+# 		gradeDF = dateDF1[grademask] ###get the dataframe just contain one date and a sum grade number
+# 		date_grade[date] = len(gradeDF)
+
+	
+# 	data = pd.Series(date_grade)
+# 	# # print data.index
+# 	data.plot()
+# 	plt.show()
+
+
+
+
+def calculate_boro_grade(Borough):
+	rawdata = pd.read_csv("DOHMH_New_York_City_Restaurant_Inspection_Results_raw.csv", low_memory = False)
+	cleaningdata1 = rawdata.dropna(subset = ['GRADE']) # get the NAN eliminated
+	cleaningdata2 = cleaningdata1.query('GRADE != "Not Yet Graded"') #get the "Not Yet Graded" eliminated
+	####convert  'GRADE DATE' to datetime
+	cleaningdata2 = cleaningdata2.dropna(subset = ['GRADE DATE'])### remember to drop nan!!!!
+	cleaningdata2['GRADE DATE'] = pd.to_datetime(cleaningdata2['GRADE DATE'],format = '%m/%d/%Y')
+	###convert datetime to date use date() method
+	cleaningdata2['GRADE DATE'] = [time.date() for time in cleaningdata2['GRADE DATE']]
+	###sort the dataframe use time 
+	cleandata = cleaningdata2.sort(['GRADE DATE'])
+	"""this is the method to show one borough with different grades"""
+	
+	gradearray = (cleandata['GRADE']).unique()
+	
+	datearray = (cleandata['GRADE DATE']).unique()
+	data = pd.DataFrame()
+	for grade in gradearray:
+		boro_date_grade = {}
+		grademask = cleandata['GRADE'] == grade
+		cleangradedata = cleandata[grademask]
+		for date in datearray:
+
+			datemask = cleangradedata['GRADE DATE']== date#####use mask to get the date index 
+			dateDF1 = cleangradedata[datemask]
+			boromask = dateDF1['BORO'] == Borough####get the grade mask 
+			boroDF = dateDF1[boromask] 
+			boro_date_grade[date] = len(boroDF)
+	# print boro_date_grade
+		data['date'] = boro_date_grade.keys()
+		data = data.set_index(pd.DatetimeIndex(data['date']))
+		del data['date']
+		data[grade] = boro_date_grade.values()
+		del boro_date_grade,boroDF,dateDF1,boromask,datemask,grademask,cleangradedata
+	data = data.groupby([pd.TimeGrouper('M')]).sum()
+	# print data
+	data.plot()
+	printtitle = 'grade_improvement_'+Borough.lower()
+	plt.title(printtitle)
+	plt.savefig(printtitle+'.pdf')
+	plt.show(block = False)
+	return None
+
+if __name__ == '__main__':
+	Borolist = ['MANHATTAN','BROOKLYN','QUEENS','BRONX','STATEN ISLAND']
+	for boro in Borolist:
+		calculate_boro_grade(boro)
+

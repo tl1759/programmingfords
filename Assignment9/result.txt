@@ -1,0 +1,6 @@
+MANHATTAN's restaurants grade is -228.
+BROOKLYN's restaurants grade is -348.
+QUEENS's restaurants grade is -206.
+BRONX's restaurants grade is -102.
+STATEN ISLAND's restaurants grade is -30.
+NYC restaurants grade is -917.
